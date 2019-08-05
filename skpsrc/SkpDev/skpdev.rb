@@ -4,6 +4,8 @@ require 'securerandom'
 
 
 module AS_Extensions
+  flag = FileTest::exists?("#{File.dirname(__FILE__)}/html/index.html")
+  puts flag
   module AS_SkpDev
     class SkpDev < UI::HtmlDialog
       def initialize(env)
@@ -63,6 +65,16 @@ module AS_Extensions
           SKETCHUP_CONSOLE.clear
         }
 
+        add_action_callback("reloadOtherCode") { | dlg, filename |
+          puts "#{filename} has changed, reload it!"
+          load(filename)
+        }
+
+        add_action_callback("addLoadPath") { | dlg, path |
+          puts "add #{path} to $LOAD_PATH"
+          $LOAD_PATH.push path
+        }
+
         add_action_callback("exec") do |dlg, params, code|
             # Provide some status text
             # dlg.execute_script( "addResults('Running the code...')" )
@@ -114,6 +126,11 @@ module AS_Extensions
     end
   end
 
-  AS_SkpDev::SkpDev.new('dev')
+  if flag == false
+    UI.messagebox "调试模式开启"
+    
+    AS_SkpDev::SkpDev.new('dev')
+  end
+  
   
 end

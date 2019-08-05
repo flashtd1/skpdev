@@ -1,0 +1,28 @@
+require 'sketchup.rb'
+require 'extensions.rb'
+
+
+
+module AS_Extensions
+    module AS_FloorPlanPlugin
+        EXTVERSION = %VERSION%
+        EXTTITLE = "SkpDev"
+        EXTNAME = "SkpDev"
+        EXTDESCRIPTION        = "sketchup的vs开发辅助工具，能自动更新额外加载的ruby文件，主动提醒入口ruby文件变动以及其他的常用功能"
+
+
+        @extdir = File.dirname(__FILE__)
+        @extdir.force_encoding('UTF-8') if @extdir.respond_to?(:force_encoding)
+        EXTDIR = @extdir
+
+        loader = File.join(EXTDIR, EXTNAME, 'skpdev.rb')
+
+        extension = SketchupExtension.new(EXTTITLE, loader)
+        extension.copyright = "Copyright 2018-#{Time.now.year} Flashtd1"
+        extension.creator = "Flashtd1 www.flashtd1.com"
+        extension.version = EXTVERSION
+        extension.description = EXTDESCRIPTION
+
+        Sketchup.register_extension(extension, true)
+    end
+end

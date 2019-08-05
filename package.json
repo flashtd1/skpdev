@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "buildrbz": "node build/buildrbz.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^3.1.1",
     "bootstrap": "^4.3.1",
+    "fs-extra": "^8.1.0",
     "jquery": "^3.4.1",
     "koa": "^2.7.0",
     "koa-body": "^4.1.0",
