@@ -3,37 +3,51 @@ html
     title
     link(rel="stylesheet", href="node_modules/bootstrap/dist/css/bootstrap.min.css")
   body
-    .d-flex.justify-content-center
-      button.btn.btn-success(onclick="run()")
-        | 运行
-      button#badge.btn.btn-danger(onclick="window.location.reload()" style="display:none;")
-        | 有更新
-    .d-flex.justify-content-center  
-      button.btn.btn-success(onclick="openRubyConsole()")
-        | 开启Ruby控制台
-    .d-flex.justify-content-center
-      button.btn.btn-success(onclick="clearRubyConsole()")
-        | 清空Ruby控制台
-    textarea#console(style="display:none;")
-      | #{params.code}
+    .container
+      .row
+        .col-md-12
+          button.btn.btn-success(onclick="run()")
+            | 运行
+          button#badge.btn.btn-danger(onclick="window.location.reload()" style="display:none;")
+            | 有更新
+      .row
+        .col-md-12
+          button.btn.btn-success(onclick="openRubyConsole()")
+            | 开启Ruby控制台
+      .row
+        .col-md-12
+          button.btn.btn-success(onclick="clearRubyConsole()")
+            | 清空Ruby控制台
+      textarea#console(style="display:none;")
+        | #{params.code}
   script(src='node_modules/jquery/dist/jquery.min.js')
   script(src='node_modules/socket.io-client/dist/socket.io.js')
   script(src='node_modules/bootstrap/dist/js/bootstrap.min.js')
   script.
-    var socket = io('http://localhost:9002');
+    var socket = io('http://localhost:9002')
     socket.on('connect', function(){
       console.log('连线')
       socket.emit('event', {
         data:"hello"
       })
-    });
+    })
     socket.on('event', function(data){
-      console.log(data)
-      $('#badge').show()
-    });
+      switch(data.event) {
+        case 'entry':
+          $('#badge').show()
+        break
+        case 'other':
+          reloadOtherCode(data.file)
+        break
+        default:
+          console.log('没处理的情况')
+        break
+      }
+      
+    })
     socket.on('disconnect', function(){
       console.log('掉线')
-    });
+    })
   script.
     function run() {
       sketchup.exec('true', document.getElementById('console').value)
@@ -50,3 +64,13 @@ html
     function clearRubyConsole() {
       sketchup.clearRubyConsole()
     }
+
+    function reloadOtherCode(file) {
+      sketchup.reloadOtherCode(file)
+    }
+
+    function addLoadPath() {
+      sketchup.addLoadPath("#{params.loadpath}")
+    }
+    
+    addLoadPath()
