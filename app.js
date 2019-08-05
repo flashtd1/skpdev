@@ -45,24 +45,45 @@ const initApiServer = () => {
 // API处理
 const apiHandler = async (ctx) => {
     let code = fs.readFileSync('./output.rb', {encoding: 'utf-8'})
+    let loadpath = fs.readFileSync('./loadpath.txt', {encoding: 'utf-8'})
     return ctx.render('index', {
         params: {
-            code: code
+            code: code,
+            loadpath: loadpath
         }
     })
 }
 
 const initWatchFileServer = () => {
-    let path = 'C:/Users/apple/Documents/work/dev/sketchup/floorplandetect/skpsrc/FloorPlanPlugin'
+    let pluginName = 'FloorPlanPlugin'
+    let entryFilename = `${pluginName.toLowerCase()}.rb`
+    let path = `C:/Users/apple/Documents/work/dev/sketchup/floorplandetect/skpsrc/${pluginName}`
+    fs.writeFileSync('loadpath.txt', path)
+    
+    // 初始化读取代码
+    let script = fs.readFileSync(`${path}/${entryFilename}`, {
+        encoding: 'utf-8'
+    })
+    fs.writeFileSync('./output.rb', script, {encoding:'utf-8'})
+    
     fs.watch(path, null, (eType, filename) => {
         console.log(`${eType} ======= ${filename}`)
         let script = fs.readFileSync(`${path}/${filename}`, {
             encoding: 'utf-8'
         })
-        fs.writeFileSync('./output.rb', script,{encoding:'utf-8'})
-        client.emit('event', {
-            data:'code change!'
-        })
+        if(filename === entryFilename) {
+            fs.writeFileSync('./output.rb', script,{encoding:'utf-8'})
+            client.emit('event', {
+                event: 'entry',
+                message: 'entry code changed'
+            })
+        } else {
+            client.emit('event', {
+                event: 'other',
+                file: filename,
+                message: `${filename} has changed`
+            })
+        }
     })
 }
 
