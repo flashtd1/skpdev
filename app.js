@@ -5,7 +5,9 @@ const Koa = require('koa'),
     views = require('koa-views'),	// koaBody = require('koa-body'),
     fs = require('fs'),
     io = require('socket.io')(),
-    api = new Koa()
+    api = new Koa(),
+    projectPath = 'C:/Users/apple/Documents/work/dev/sketchup/floorplandetect', // 项目路径
+    pluginName = 'FloorPlanPlugin' // 插件名称
 
 
 let client = null
@@ -55,9 +57,8 @@ const apiHandler = async (ctx) => {
 }
 
 const initWatchFileServer = () => {
-    let pluginName = 'FloorPlanPlugin'
     let entryFilename = `${pluginName.toLowerCase()}.rb`
-    let path = `C:/Users/apple/Documents/work/dev/sketchup/floorplandetect/skpsrc/${pluginName}`
+    let path = `${projectPath}/skpsrc/${pluginName}`
     fs.writeFileSync('loadpath.txt', path)
     
     // 初始化读取代码
