@@ -6,9 +6,21 @@ html
     .container
       .row
         .col-md-12
+          button.btn.btn-primary(data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample")
+            | 设置
+        .col-md-12
+          div.collapse#collapseExample
+            span 侦听目录
+            input.form-control#path(value=params.loadpath onchange="pathchange()")
+            span 侦听文件
+            input.form-control#entryFile
+            button.btn.btn-info(onclick="setting()")
+              | 确定
+      .row
+        .col-md-12
           button.btn.btn-success(onclick="run()")
             | 运行
-          button#badge.btn.btn-danger(onclick="window.location.reload()" style="display:none;")
+          button#badge.btn.btn-danger(onclick="update()" style="display:none;")
             | 有更新
       .row
         .col-md-12
@@ -23,8 +35,9 @@ html
   script(src='node_modules/jquery/dist/jquery.min.js')
   script(src='node_modules/socket.io-client/dist/socket.io.js')
   script(src='node_modules/bootstrap/dist/js/bootstrap.min.js')
+  script(src='node_modules/axios/dist/axios.min.js')
   script.
-    var socket = io('http://localhost:9002')
+    var socket = io("http://localhost:#{params.socketPort}")
     socket.on('connect', function(){
       console.log('连线')
       socket.emit('event', {
@@ -69,8 +82,32 @@ html
       sketchup.reloadOtherCode(file)
     }
 
-    function addLoadPath() {
-      sketchup.addLoadPath("#{params.loadpath}")
+    function addLoadPath(path) {
+      sketchup.addLoadPath(path)
+    }
+
+    function update() {
+      axios.get('/update')
+      .then(function(response) {
+        document.querySelector('#console').value = response.data.code
+        $('#badge').hide()
+      })
+    }
+
+    function setting() {
+      axios.post('/setting', {
+        watchingPath: $('#path').val(),
+        watchingFile: $('#entryFile').val()
+      })
+      .then(function(response) {
+        addLoadPath(response.data.watchingPath)
+      })
+    }
+
+    function pathchange() {
+      var strurl = $('#path').val()
+      strurl = strurl.replace(/\\/g, "\/")
+      $('#path').val(strurl)
     }
     
-    addLoadPath()
+    addLoadPath("#{params.loadpath}")

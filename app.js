@@ -2,17 +2,20 @@ const Koa = require('koa'),
     router = require('koa-router')(),
     serve = require('koa-static'),
     mount = require('koa-mount'),
-    views = require('koa-views'),	// koaBody = require('koa-body'),
+    views = require('koa-views'),	
+    koaBody = require('koa-body'),
     fs = require('fs'),
     io = require('socket.io')(),
     api = new Koa(),
+    apiPort = 9001,
+    socketPort = 9002,
     projectPath = 'C:/Users/apple/Documents/work/dev/sketchup/floorplandetect', // 项目路径
     pluginName = 'FloorPlanPlugin' // 插件名称
 
 
 let client = null
 
-const initSocket = () => {
+const initSocket = (port) => {
     io.on('connection', (d) => {
         client = d
         client.on('event', (data) => {
@@ -23,14 +26,25 @@ const initSocket = () => {
             console.log('关闭连接：' + socket)
         })
     })
-    let port = 9002
-    io.listen(port)
+    io.listen(port || 9002)
 }
 
-const initApiServer = () => {
+const initApiServer = (port) => {
 
     router.get('/', async (ctx, next) => {
         await apiHandler(ctx)
+    })
+
+    router.get('/update', async (ctx, next) => {
+        let code = fs.readFileSync('./output.rb', {encoding: 'utf-8'})
+        ctx.body = {
+            code: code
+        }
+    })
+
+    router.post('/setting', koaBody(), async (ctx, next) => {
+        initWatchFileServer(ctx.request.body.watchingFile, ctx.request.body.watchingPath)
+        ctx.body = await ctx.request.body
     })
     
     api
@@ -39,8 +53,7 @@ const initApiServer = () => {
         .use(router.routes())
         .use(router.allowedMethods())
 
-    let port = 9001
-    api.listen(port)
+    api.listen(port || 9001)
     console.log(`开启接口服务器，端口号：${port}`)
 }
 
@@ -50,15 +63,14 @@ const apiHandler = async (ctx) => {
     let loadpath = fs.readFileSync('./loadpath.txt', {encoding: 'utf-8'})
     return ctx.render('index', {
         params: {
+            socketPort: socketPort,
             code: code,
             loadpath: loadpath
         }
     })
 }
 
-const initWatchFileServer = () => {
-    let entryFilename = `${pluginName.toLowerCase()}.rb`
-    let path = `${projectPath}/skpsrc/${pluginName}`
+const initWatchFileServer = (entryFilename, path) => {
     fs.writeFileSync('loadpath.txt', path)
     
     // 初始化读取代码
@@ -88,6 +100,8 @@ const initWatchFileServer = () => {
     })
 }
 
-initSocket()
-initApiServer()
-initWatchFileServer()
+
+
+initSocket(socketPort)
+initApiServer(apiPort)
+// initWatchFileServer(`${pluginName.toLowerCase()}.rb`, `${projectPath}/skpsrc/${pluginName}`)
